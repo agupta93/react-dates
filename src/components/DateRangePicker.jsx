@@ -267,14 +267,36 @@ export default class DateRangePicker extends React.Component {
     return isSameDay(day, this.state.hoverDate);
   }
 
+  blockedDateLieInRange(day){
+    const {startDate, endDate, isDayBlocked} = this.props,
+        {blockedDateInRange} = this,
+        {hoverDate} = this.state;
+
+    if ((!!startDate && isSameDay(day, startDate)) || (!!endDate && isSameDay(day, endDate))){
+      this.blockedDateInRange = undefined;
+      return false;
+    }
+
+    if (!blockedDateInRange){
+      if (!isDayBlocked(day)){
+        return false;
+      }
+
+      this.blockedDateInRange = day;
+      return true;
+
+    } else {
+      return !!(!!startDate && blockedDateInRange.isBetween(startDate, hoverDate)) || (!!endDate && blockedDateInRange.isBetween(hoverDate, endDate))
+    }
+  }
+
   isInHoveredSpan(day) {
     const { startDate, endDate } = this.props;
     const { hoverDate } = this.state;
-
-    const isForwardRange = !!startDate && !endDate &&
+    const isForwardRange = !!startDate && !endDate && !this.blockedDateLieInRange(day) &&
       (day.isBetween(startDate, hoverDate) ||
        isSameDay(hoverDate, day));
-    const isBackwardRange = !!endDate && !startDate &&
+    const isBackwardRange = !!endDate && !startDate && !this.blockedDateLieInRange(day) &&
       (day.isBetween(hoverDate, endDate) ||
        isSameDay(hoverDate, day));
 
